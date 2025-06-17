@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus Painéis Criativos - Seu Nome</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .gradient-text { 
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .panel-card {
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            border: 1px solid #e5e7eb; 
+            display: flex;
+            flex-direction: column;
+            align-items: center; 
+            text-align: center; 
+            min-height: 220px; 
+            justify-content: space-between; 
+            background-color: white; /* Adicionado para garantir fundo branco nos cards */
+            border-radius: 0.75rem; /* rounded-xl */
+            overflow: hidden; /* Para garantir que o conteúdo não transborde */
+        }
+        .panel-card:hover {
+            transform: translateY(-5px) scale(1.02); 
+            box-shadow: 0 6px 12px rgba(0,0,0,0.08); 
+        }
+        .panel-card-icon-container {
+            padding-top: 1.25rem; 
+            padding-bottom: 0.75rem; 
+        }
+        .panel-card-icon {
+            width: 48px; 
+            height: 48px; 
+            color: #ec4899; /* Tailwind pink-500 */
+            margin-bottom: 0.75rem; 
+        }
+        .panel-card-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-grow: 1;
+            width: 100%;
+            padding: 1rem; /* p-4, movido para cá para aplicar a todo o conteúdo textual */
+        }
+         .panel-card-button-container {
+            width: calc(100% - 2rem); /* Considera o padding de 1rem de cada lado */
+            margin-top: auto; 
+            padding-bottom: 1rem; /* Adiciona padding inferior ao botão */
+        }
+
+        .modal { 
+            display: none; 
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.8);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content { 
+            margin: auto;
+            display: block;
+            max-width: 90%;
+            max-height: 90vh;
+            border-radius: 8px;
+        }
+        .modal-close { 
+            position: absolute;
+            top: 20px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+            z-index: 1051; 
+        }
+        .modal-close:hover,
+        .modal-close:focus {
+            color: #bbb;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .powerbi-modal {
+            display: none; 
+            position: fixed;
+            z-index: 1050; 
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7); 
+            justify-content: center;
+            align-items: center;
+            padding: 20px; 
+        }
+        .powerbi-modal-content {
+            background-color: #fff; 
+            width: 70vw; /* Ajustado para melhor visualização em desktop */
+            height: 90vh; 
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            overflow: hidden; 
+            position: relative; 
+        }
+        .powerbi-modal-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .top-bar {
+            background-color: #7f1d1d; /* red-900 */
+        }
+        .main-nav {
+            background-color: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .nav-link {
+            @apply px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900;
+        }
+        .top-bar-link {
+             @apply px-3 py-1 text-xs hover:text-gray-200;
+             color: white !important; 
+        }
+        .title-banner {
+            background-color: #f9fafb; 
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .custom-logo .logo-line1, .custom-logo .logo-line3 {
+            font-size: 0.75rem; 
+            color: #dd3366; 
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600; 
+            line-height: 1.1; 
+        }
+        .custom-logo .logo-line2 {
+            font-size: 1.50rem; 
+            font-weight: 800; 
+            color: #3b0764; 
+            text-transform: uppercase;
+            line-height: 1.1;
+            margin-top: -0.1em; 
+            margin-bottom: -0.1em; 
+        }
+        /* Estilos para a secção Gemini */
+        .gemini-inspiration-card {
+            background-color: #fdf4ff; /* Cor de fundo suave para os cards de sugestão */
+            border: 1px solid #fbcfe8; /* Borda rosa claro */
+        }
+        .loader {
+            border: 4px solid #f3f3f3; /* Cinza claro */
+            border-top: 4px solid #ec4899; /* Rosa */
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <header>
+        <div class="top-bar"><div class="container mx-auto px-4 sm:px-6 lg:px-8"><div class="flex h-8 items-center justify-end space-x-4"><a href="#" class="top-bar-link flex items-center"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>Acesso à Informação</a><a href="#" class="top-bar-link flex items-center"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-3.86 8.25-8.625 8.25S3.75 16.556 3.75 12s3.86-8.25 8.625-8.25S21 7.444 21 12Z" /></svg>Ouvidoria</a><a href="#" class="top-bar-link flex items-center"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>Administrador</a><div class="flex items-center space-x-2"><span class="text-white text-xs">Acessibilidade:</span><button aria-label="Diminuir fonte" class="top-bar-link text-base">A-</button><button aria-label="Aumentar fonte" class="top-bar-link text-base">A+</button><a href="#" aria-label="Opções de acessibilidade" class="top-bar-link"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M12.75 15l3-3m0 0l-3-3m3 3h-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></a></div></div></div></div>
+        <nav class="main-nav"><div class="container mx-auto px-5 sm:px-6 lg:px-8"><div class="flex h-16 items-center justify-between"><div class="flex items-center"><a href="#" class="flex-shrink-0 custom-logo leading-none"><div class="logo-line1">Painéis da</div><div class="logo-line2">Transparência</div><div class="logo-line3">Do MPE-AM</div></a></div><div class="hidden md:flex md:items-center md:space-x-4"><a href="#" class="nav-link bg-gray-100 text-purple-700">Início</a><a href="#galeria" class="nav-link">Galeria</a><a href="#sobre" class="nav-link">Sobre</a><a href="#contato" class="nav-link">Contato</a><button class="text-gray-600 hover:text-purple-700 p-2 rounded-md"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg></button></div><div class="md:hidden flex items-center"><button id="mobile-menu-button" class="text-gray-600 hover:text-purple-700 p-2 rounded-md"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg></button></div></div></div><div id="mobile-menu" class="md:hidden hidden bg-white border-t border-gray-200"><a href="#" class="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-purple-700">Início</a><a href="#galeria" class="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-purple-700">Galeria</a><a href="#sobre" class="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-purple-700">Sobre</a><a href="#contato" class="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-purple-700">Contato</a><div class="px-4 py-2"><button class="w-full flex items-center justify-center text-gray-600 hover:text-purple-700 p-2 rounded-md border border-gray-300 hover:border-purple-400"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>Pesquisar</button></div></div></nav>
+    </header>
+
+    <section class="title-banner py-8 md:py-12"><div class="container mx-auto px-6"><p class="text-sm text-gray-500 mb-2"><a href="#" class="hover:underline text-purple-600">Início</a> &gt; <span class="text-gray-700">Paineis Interativos</span></p><h1 class="text-2xl md:text-2xl font-bold text-pink-600 mb-3">Paineis Interativos</h1><p class="text-md md:text-lg text-gray-700 max-w-3xl"></p></div></section>
+
+    <div class="container mx-auto px-6 pt-8"> 
+        <main id="galeria" class="pb-12 md:pb-20">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div class="panel-card p-0"> <!-- Removido p-4 do panel-card para aplicar no content -->
+                    <div class="panel-card-icon-container">
+                        <svg class="panel-card-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 2.5C15.5 2.22386 15.2761 2 15 2H6C5.44772 2 5 2.44772 5 3V21C5 21.5523 5.44772 22 6 22H18C18.5523 22 19 21.5523 19 21V7.5L15.5 2.5Z M14.5 3.91421L17.0858 6.5H14.5V3.91421Z M7 8V10H17V8H7ZM7 12V14H17V12H7Z"/><path d="M12 15.0001C10.067 15.0001 8.5 16.5671 8.5 18.5001C8.5 20.4331 10.067 22.0001 12 22.0001C13.933 22.0001 15.5 20.4331 15.5 18.5001C15.5 16.5671 13.933 15.0001 12 15.0001ZM12.75 16.2501L12.75 17.7501H14.25C14.6642 17.7501 15 18.0859 15 18.5001C15 18.9143 14.6642 19.2501 14.25 19.2501H12.75L12.75 20.7501C12.75 21.1643 12.4142 21.5001 12 21.5001C11.5858 21.5001 11.25 21.1643 11.25 20.7501L11.25 19.2501H9.75C9.33579 19.2501 9 18.9143 9 18.5001C9 18.0859 9.33579 17.7501 9.75 17.7501H11.25L11.25 16.2501C11.25 15.8359 11.5858 15.5001 12 15.5001C12.4142 15.5001 12.75 15.8359 12.75 16.2501Z M10.1465 14.6465L12 12.793L13.8536 14.6465H10.1465Z"/></svg>
+                    </div>
+                    <div class="panel-card-content">
+                        <h3 class="text-md font-semibold text-gray-700 mb-1">Movimentação de Processos</h3>
+                        <p class="text-xs text-gray-500 mb-3 line-clamp-2">Dashboard interativo com dados e visualizações do projeto.</p>
+                    </div>
+                    <div class="panel-card-button-container">
+                        <button id="openPowerBiModalButton" class="block w-full text-center bg-pink-500 hover:bg-pink-600 text-white font-semibold py-2 px-3 rounded-md transition-colors text-xs">Abrir Dashboard</button>
+                    </div>
+                </div>
+                <div class="panel-card p-0" data-modal-image-src="https://placehold.co/800x600/957DAD/301934?text=Painel+Urbano+Grande"><div class="panel-card-icon-container"><svg class="panel-card-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h18M3 21h18" /></svg></div><div class="panel-card-content"><h3 class="text-md font-semibold text-gray-700 mb-1">Conexões Urbanas</h3><p class="text-xs text-gray-500 line-clamp-3">Mood board focado em arquitetura moderna e minimalismo.</p></div></div>
+                <div class="panel-card p-0" data-modal-image-src="https://placehold.co/800x600/D291BC/2E0854?text=Painel+Natureza+Grande"><div class="panel-card-icon-container"><svg class="panel-card-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345h5.518a.562.562 0 0 1 .329.89l-4.203 3.06a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-3.25a.563.563 0 0 0-.652 0l-4.725 3.25a.562.562 0 0 1-.84-.61l1.285-5.385a.562.562 0 0 0-.182-.557l-4.203-3.06a.562.562 0 0 1 .329-.89h5.518a.563.563 0 0 0 .475-.345L11.48 3.5Z" /></svg></div><div class="panel-card-content"><h3 class="text-md font-semibold text-gray-700 mb-1">Sinfonia Natural</h3><p class="text-xs text-gray-500 line-clamp-3">Um painel que reúne elementos da natureza, flora e fauna.</p></div></div>
+                <div class="panel-card p-0" data-modal-image-src="https://placehold.co/800x600/FEC8D8/800080?text=Painel+Abstrato+Grande"><div class="panel-card-icon-container"><svg class="panel-card-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-2.25-1.313M21 7.5v2.25m0-2.25l-2.25 1.313M3 7.5l2.25-1.313M3 7.5l2.25 1.313M3 7.5v2.25m9 3l2.25-1.313M12 12.75l-2.25 1.313M12 12.75V15m0 6.75l2.25-1.313M12 21.75V19.5m0 2.25l-2.25-1.313m0-16.875L12 2.25l2.25 1.313M12 7.5l2.25 1.313M12 7.5l-2.25 1.313M3 12.75l2.25-1.313M21 12.75l-2.25-1.313m0 0V15" /></svg></div><div class="panel-card-content"><h3 class="text-md font-semibold text-gray-700 mb-1">Formas Abstratas</h3><p class="text-xs text-gray-500 line-clamp-3">Investigação de formas, cores e composições abstratas.</p></div></div>
+                <div class="panel-card p-0" data-modal-image-src="https://placehold.co/800x600/A0D2DB/3A1C71?text=Painel+Futurista+Grande"><div class="panel-card-icon-container"><svg class="panel-card-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5M19.5 8.25h-1.5m-15 3.75H3m18 0h-1.5M19.5 12h-1.5m-15 3.75H3m18 0h-1.5m-15 3.75h1.5M12 12m-6 0a6 6 0 1 1 12 0a6 6 0 1 1-12 0" /></svg></div><div class="panel-card-content"><h3 class="text-md font-semibold text-gray-700 mb-1">Design Futurista</h3><p class="text-xs text-gray-500 line-clamp-3">Conceitos visuais para interfaces com foco em tecnologia.</p></div></div>
+                <div class="panel-card p-0" data-modal-image-src="https://placehold.co/800x600/FFDAB9/8B4513?text=Painel+Vintage+Grande"><div class="panel-card-icon-container"><svg class="panel-card-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg></div><div class="panel-card-content"><h3 class="text-md font-semibold text-gray-700 mb-1">Retrô Inspirador</h3><p class="text-xs text-gray-500 line-clamp-3">Elementos de design vintage e paletas nostálgicas.</p></div></div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Secção de Inspiração com IA -->
+    <section id="gemini-inspiration" class="py-12 md:py-20 bg-purple-50">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl md:text-4xl font-bold text-center text-purple-700 mb-4">✨ Inspire-se com IA ✨</h2>
+            <p class="text-center text-gray-600 mb-8 max-w-xl mx-auto">Precisa de novas ideias para os seus painéis criativos? Introduza um tema ou algumas palavras-chave e deixe a IA gerar sugestões para si!</p>
+            
+            <div class="max-w-lg mx-auto bg-white p-6 md:p-8 rounded-xl shadow-lg">
+                <div class="mb-4">
+                    <label for="themeInput" class="block text-sm font-medium text-gray-700 mb-1">Tema ou Palavras-chave:</label>
+                    <input type="text" id="themeInput" class="w-full p-3 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500" placeholder="Ex: Natureza e tecnologia, Cores vibrantes, Minimalismo...">
+                </div>
+                <button id="generateIdeasButton" class="w-full flex items-center justify-center px-6 py-3 bg-purple-600 text-white font-semibold rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors duration-150">
+                    <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" /></svg>
+                    Gerar Ideias
+                </button>
+
+                <div id="geminiLoading" class="hidden text-center mt-6">
+                    <div class="loader"></div>
+                    <p class="text-sm text-gray-500">A gerar ideias... por favor, aguarde.</p>
+                </div>
+                <div id="geminiError" class="hidden mt-6 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md">
+                    <p>Ocorreu um erro ao gerar as ideias. Tente novamente.</p>
+                </div>
+                <div id="geminiResponse" class="mt-8 space-y-6">
+                    <!-- As sugestões da IA serão inseridas aqui -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="sobre" class="bg-purple-50 dark:bg-purple-900 py-12 md:py-20"><div class="container mx-auto px-6 text-center"><h2 class="text-3xl md:text-4xl font-bold text-purple-700 dark:text-purple-300 mb-6">Sobre Mim</h2><img src="https://placehold.co/150x150/A0D2DB/3A1C71?text=Sua+Foto" alt="Sua Foto" class="w-32 h-32 md:w-40 md:h-40 rounded-full mx-auto mb-6 shadow-lg border-4 border-white"><p class="text-lg text-gray-700 dark:text-gray-300 max-w-xl mx-auto mb-3">Olá! Sou [Seu Nome], um(a) [Sua Profissão/Paixão] apaixonado(a) por criar e explorar o universo visual. Estes painéis representam um pouco do meu processo criativo e das minhas inspirações.</p><p class="text-md text-gray-600 dark:text-gray-400 max-w-xl mx-auto">Você pode encontrar mais do meu trabalho e entrar em contato através do meu perfil no Behance.</p></div></section>
+    <section id="contato" class="py-12 md:py-20"><div class="container mx-auto px-6 text-center"><h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-6">Entre em Contato</h2><p class="text-lg text-gray-700 max-w-xl mx-auto">Gostou do que viu? Vamos conversar sobre seu próximo projeto!<br>(Adapte esta seção com suas informações de contato ou um formulário)</p></div></section>
+    <footer class="bg-gray-800 text-gray-300 py-10 text-center"><div class="container mx-auto px-6"><p class="mb-2">&copy; <span id="currentYear"></span> [Seu Nome]. Todos os direitos reservados.</p><p><a href="URL_DO_SEU_BEHANCE_AQUI" target="_blank" rel="noopener noreferrer" class="text-purple-400 hover:text-purple-300 underline">Veja meu Behance</a></p></div></footer>
+
+    <div id="imageModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="imageModalTitle"><span class="modal-close" id="closeImageModalButton" aria-label="Fechar Modal de Imagem">&times;</span><img class="modal-content" id="modalImage" src="" alt="Imagem do Painel Ampliada"><div id="modalCaption" class="text-center text-gray-300 p-4"></div></div>
+    <div id="powerBiModal" class="powerbi-modal" role="dialog" aria-modal="true" aria-labelledby="powerBiModalTitle"><div class="powerbi-modal-content"><span class="modal-close" id="closePowerBiModalButton" aria-label="Fechar Modal do Dashboard">&times;</span><iframe id="powerBiModalIframe" class="powerbi-modal-iframe" src="" title="Dashboard Power BI Ampliado" allowfullscreen></iframe><h3 id="powerBiModalTitle" class="sr-only">Dashboard Power BI</h3></div></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentYearElement = document.getElementById('currentYear');
+            if (currentYearElement) {
+                currentYearElement.textContent = new Date().getFullYear();
+            }
+
+            const imageModal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            const modalCaption = document.getElementById('modalCaption');
+            const panelCardsForImageModal = document.querySelectorAll('.panel-card[data-modal-image-src]');
+            const closeImageModalBtn = document.getElementById('closeImageModalButton');
+
+            if (imageModal && modalImg && modalCaption && closeImageModalBtn) {
+                panelCardsForImageModal.forEach(card => {
+                    card.classList.add('cursor-pointer'); 
+                    card.onclick = function(event){
+                        if (event.target.tagName === 'BUTTON' || event.target.closest('button')) return; 
+                        
+                        const imageSrc = this.dataset.modalImageSrc;
+                        const titleElement = this.querySelector('.panel-card-content h3');
+                        
+                        if (imageSrc) {
+                            imageModal.style.display = "flex"; 
+                            modalImg.src = imageSrc; 
+                            modalCaption.textContent = titleElement ? titleElement.textContent : 'Painel Ampliado';
+                        }
+                    }
+                });
+
+                function closeImageModalFunc() {
+                    imageModal.style.display = "none";
+                    modalImg.src = ""; 
+                }
+                closeImageModalBtn.onclick = closeImageModalFunc;
+                imageModal.onclick = function(event) {
+                    if (event.target === imageModal) { 
+                        closeImageModalFunc();
+                    }
+                }
+                document.addEventListener('keydown', function(event) {
+                    if (event.key === "Escape" && imageModal.style.display === "flex") {
+                        closeImageModalFunc();
+                    }
+                });
+            }
+
+            const powerBiModal = document.getElementById('powerBiModal');
+            const openPowerBiModalButton = document.getElementById('openPowerBiModalButton');
+            const closePowerBiModalButton = document.getElementById('closePowerBiModalButton');
+            const powerBiIframe = document.getElementById('powerBiModalIframe');
+            const powerBiUrl = "https://app.powerbi.com/view?r=eyJrIjoiMmU5MGU4NjUtZGRkNi00NzgxLTg1NWMtNDMxYWMzMjk1YmUyIiwidCI6Ijg0YTkyNDhlLTM5NmYtNDRkZi04NGE5LTQzNzllMTEwMDdhYiJ9"; 
+            
+            if (powerBiModal && openPowerBiModalButton && closePowerBiModalButton && powerBiIframe) {
+                openPowerBiModalButton.addEventListener('click', function() {
+                    powerBiIframe.src = powerBiUrl; 
+                    powerBiModal.style.display = 'flex';
+                });
+
+                function closePowerBiModalFunc() {
+                    powerBiModal.style.display = 'none';
+                    powerBiIframe.src = ""; 
+                }
+                closePowerBiModalButton.onclick = closePowerBiModalFunc;
+                powerBiModal.onclick = function(event) { 
+                    if (event.target === powerBiModal) {
+                        closePowerBiModalFunc();
+                    }
+                }
+                document.addEventListener('keydown', function(event) {
+                    if (event.key === "Escape" && powerBiModal.style.display === "flex") {
+                        closePowerBiModalFunc();
+                    }
+                });
+            }
+
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            if(mobileMenuButton && mobileMenu){
+                mobileMenuButton.addEventListener('click', function(){
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+
+            // Funcionalidade Gemini API
+            const generateIdeasButton = document.getElementById('generateIdeasButton');
+            const themeInput = document.getElementById('themeInput');
+            const geminiResponseDiv = document.getElementById('geminiResponse');
+            const geminiLoadingDiv = document.getElementById('geminiLoading');
+            const geminiErrorDiv = document.getElementById('geminiError');
+
+            if (generateIdeasButton && themeInput && geminiResponseDiv && geminiLoadingDiv && geminiErrorDiv) {
+                generateIdeasButton.addEventListener('click', async function() {
+                    const userInput = themeInput.value.trim();
+                    if (!userInput) {
+                        geminiErrorDiv.textContent = 'Por favor, introduza um tema ou palavras-chave.';
+                        geminiErrorDiv.classList.remove('hidden');
+                        setTimeout(() => geminiErrorDiv.classList.add('hidden'), 3000);
+                        return;
+                    }
+
+                    geminiLoadingDiv.classList.remove('hidden');
+                    geminiResponseDiv.innerHTML = ''; // Limpa respostas anteriores
+                    geminiErrorDiv.classList.add('hidden');
+
+                    const prompt = `Com base no tema '${userInput}', sugira 3 títulos e descrições concisas para painéis criativos. Formate estritamente como:
+Título 1: [Título da Ideia 1]
+Descrição 1: [Descrição da Ideia 1]
+
+Título 2: [Título da Ideia 2]
+Descrição 2: [Descrição da Ideia 2]
+
+Título 3: [Título da Ideia 3]
+Descrição 3: [Descrição da Ideia 3]`;
+
+                    try {
+                        const apiKey = ""; // A API Key será fornecida pelo ambiente, se necessário
+                        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                        
+                        const payload = {
+                            contents: [{
+                                role: "user",
+                                parts: [{ text: prompt }]
+                            }]
+                        };
+
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            console.error('Erro da API Gemini:', errorData);
+                            throw new Error(`Erro da API: ${response.statusText} - ${errorData?.error?.message || 'Detalhes não disponíveis'}`);
+                        }
+
+                        const result = await response.json();
+                        
+                        if (result.candidates && result.candidates.length > 0 &&
+                            result.candidates[0].content && result.candidates[0].content.parts &&
+                            result.candidates[0].content.parts.length > 0) {
+                            
+                            const rawText = result.candidates[0].content.parts[0].text;
+                            // Parse da resposta formatada
+                            const ideas = [];
+                            const lines = rawText.split('\n\n'); // Separa por blocos de Título/Descrição
+                            lines.forEach(block => {
+                                const titleMatch = block.match(/Título \d+: (.*)/);
+                                const descMatch = block.match(/Descrição \d+: (.*)/);
+                                if (titleMatch && titleMatch[1] && descMatch && descMatch[1]) {
+                                    ideas.push({ title: titleMatch[1].trim(), description: descMatch[1].trim() });
+                                }
+                            });
+
+                            if (ideas.length > 0) {
+                                ideas.forEach(idea => {
+                                    const ideaCard = `
+                                        <div class="gemini-inspiration-card p-4 rounded-lg shadow">
+                                            <h4 class="text-lg font-semibold text-purple-700 mb-1">${idea.title}</h4>
+                                            <p class="text-sm text-gray-600">${idea.description}</p>
+                                        </div>
+                                    `;
+                                    geminiResponseDiv.innerHTML += ideaCard;
+                                });
+                            } else {
+                                 geminiResponseDiv.innerHTML = '<p class="text-gray-500">Não foi possível extrair ideias da resposta. Tente um tema diferente.</p>';
+                            }
+
+                        } else {
+                            console.error('Resposta da API Gemini inesperada:', result);
+                            throw new Error('Resposta da API Gemini não contém as sugestões esperadas.');
+                        }
+
+                    } catch (error) {
+                        console.error('Erro ao chamar a API Gemini:', error);
+                        geminiErrorDiv.textContent = `Ocorreu um erro: ${error.message}. Verifique a consola para mais detalhes.`;
+                        geminiErrorDiv.classList.remove('hidden');
+                    } finally {
+                        geminiLoadingDiv.classList.add('hidden');
+                    }
+                });
+            }
+        });
+    </script>
+
+</body>
+</html>
